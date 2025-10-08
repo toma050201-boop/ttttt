@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эмоциональный счёт в отношениях</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-rose-50 to-purple-50 min-h-screen">
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function EmotionalBankAccount() {
+            const [activeTab, setActiveTab] = useState('deposits');
+            const [selectedItemsSelf, setSelectedItemsSelf] = useState([]);
+            const [selectedItemsPartner, setSelectedItemsPartner] = useState([]);
+            const [balanceSelf, setBalanceSelf] = useState(0);
+            const [balancePartner, setBalancePartner] = useState(0);
+            const [viewMode, setViewMode] = useState('self');
+
+            const deposits = [
+                { id: 'd1', action: "Сказал комплимент без повода", value: 5, category: "Внимание" },
+                { id: 'd2', action: "Вспомнил важную деталь из разговора недельной давности", value: 15, category: "Внимание" },
+                { id: 'd3', action: "Спросил 'Как ты?' и ДЕЙСТВИТЕЛЬНО слушал ответ", value: 15, category: "Внимание" },
+                { id: 'd4', action: "Заметил что партнёр устал и предложил помощь", value: 15, category: "Внимание" },
+                { id: 'd5', action: "Запомнил что партнёр любит/не любит", value: 10, category: "Внимание" },
+                { id: 'd6', action: "Спросил про день партнёра и слушал без телефона", value: 10, category: "Внимание" },
+                { id: 'd7', action: "Помог по дому без просьбы", value: 10, category: "Забота" },
+                { id: 'd8', action: "Сделал что-то, что важно для партнёра (не для себя)", value: 20, category: "Забота" },
+                { id: 'd9', action: "Удивил приятной мелочью", value: 10, category: "Забота" },
+                { id: 'd10', action: "Приготовил еду / принёс любимое блюдо", value: 10, category: "Забота" },
+                { id: 'd11', action: "Позаботился когда партнёр болел", value: 20, category: "Забота" },
+                { id: 'd12', action: "Взял на себя неприятную задачу чтобы разгрузить партнёра", value: 15, category: "Забота" },
+                { id: 'd13', action: "Поддержал в трудный момент", value: 20, category: "Поддержка" },
+                { id: 'd14', action: "Поверил в мечту/цель партнёра когда другие сомневались", value: 25, category: "Поддержка" },
+                { id: 'd15', action: "Защитил партнёра перед своими родителями/друзьями", value: 30, category: "Поддержка" },
+                { id: 'd16', action: "Сказал 'Я горжусь тобой' искренне", value: 15, category: "Поддержка" },
+                { id: 'd17', action: "Выслушал без советов когда нужно было просто выговориться", value: 15, category: "Поддержка" },
+                { id: 'd18', action: "Отложил телефон и полностью включился в разговор", value: 10, category: "Уважение" },
+                { id: 'd19', action: "Извинился искренне, без 'но'", value: 15, category: "Уважение" },
+                { id: 'd20', action: "Признал свою ошибку первым", value: 20, category: "Уважение" },
+                { id: 'd21', action: "Спросил мнение партнёра по важному вопросу", value: 10, category: "Уважение" },
+                { id: 'd22', action: "Поддержал решение партнёра даже если думаешь иначе", value: 15, category: "Уважение" },
+                { id: 'd23', action: "Защитил при других людях", value: 25, category: "Безопасность" },
+                { id: 'd24', action: "Встал на сторону партнёра в конфликте", value: 25, category: "Безопасность" },
+                { id: 'd25', action: "Не поддержал шутки друзей над партнёром", value: 20, category: "Безопасность" },
+                { id: 'd26', action: "Создал безопасное пространство для слёз/слабости", value: 20, category: "Безопасность" },
+                { id: 'd27', action: "Обнял просто так, когда проходил мимо", value: 5, category: "Близость" },
+                { id: 'd28', action: "Инициировал близость не только физическую", value: 15, category: "Близость" },
+                { id: 'd29', action: "Сказал 'Я люблю тебя' в обычный день", value: 10, category: "Близость" },
+                { id: 'd30', action: "Поделился своими страхами/переживаниями", value: 20, category: "Близость" },
+                { id: 'd31', action: "Спросил что партнёру нужно для счастья и реально услышал", value: 20, category: "Близость" },
+                { id: 'd32', action: "Отменил свои планы, когда партнёру было плохо", value: 25, category: "Приоритет" },
+                { id: 'd33', action: "Выбрал провести время с партнёром вместо друзей", value: 15, category: "Приоритет" },
+                { id: 'd34', action: "Пришёл на важное для партнёра событие", value: 20, category: "Приоритет" },
+                { id: 'd35', action: "Ответил на звонок даже когда был занят", value: 10, category: "Приоритет" },
+                { id: 'd36', action: "Предложил вместе попробовать что-то новое", value: 15, category: "Рост" },
+                { id: 'd37', action: "Поддержал хобби/увлечение партнёра", value: 10, category: "Рост" },
+                { id: 'd38', action: "Обсудили планы на будущее и вы на одной волне", value: 20, category: "Рост" },
+                { id: 'd39', action: "Признал что нужно измениться и начал работать над этим", value: 25, category: "Рост" },
+            ];
+
+            const withdrawals = [
+                { id: 'w1', action: "Забыл о важном событии/дате", value: -20, category: "Невнимание" },
+                { id: 'w2', action: "Скроллил телефон во время разговора", value: -15, category: "Игнор" },
+                { id: 'w3', action: "Не заметил что партнёр расстроен", value: -10, category: "Невнимание" },
+                { id: 'w4', action: "Забыл что партнёр рассказывал и переспросил", value: -10, category: "Невнимание" },
+                { id: 'w5', action: "Не спросил как прошло важное событие", value: -15, category: "Невнимание" },
+                { id: 'w6', action: "Пришёл домой и не поздоровался / не обнял", value: -10, category: "Игнор" },
+                { id: 'w7', action: "Играл в игры / смотрел сериал вместо общения", value: -15, category: "Игнор" },
+                { id: 'w8', action: "Обесценил чувства: 'Ты преувеличиваешь'", value: -25, category: "Обесценивание" },
+                { id: 'w9', action: "Высмеял то, что важно для партнёра", value: -30, category: "Обесценивание" },
+                { id: 'w10', action: "Сказал 'Подумаешь, у других хуже'", value: -20, category: "Обесценивание" },
+                { id: 'w11', action: "Не похвалил когда партнёр старался", value: -15, category: "Обесценивание" },
+                { id: 'w12', action: "Обесценил работу/хобби партнёра: 'Это несерьёзно'", value: -25, category: "Обесценивание" },
+                { id: 'w13', action: "Стал лезть с советами когда надо было просто выслушать", value: -15, category: "Обесценивание" },
+                { id: 'w14', action: "Критиковал при других людях", value: -30, category: "Унижение" },
+                { id: 'w15', action: "Сравнил с бывшим/другими", value: -35, category: "Унижение" },
+                { id: 'w16', action: "Рассказал личное другим без разрешения", value: -30, category: "Унижение" },
+                { id: 'w17', action: "Поддержал шутки друзей над партнёром", value: -25, category: "Унижение" },
+                { id: 'w18', action: "Указал на недостатки внешности", value: -25, category: "Унижение" },
+                { id: 'w19', action: "Сорвался на крик из-за усталости", value: -20, category: "Агрессия" },
+                { id: 'w20', action: "Хлопнул дверью во время ссоры", value: -20, category: "Агрессия" },
+                { id: 'w21', action: "Сказал что-то обидное в гневе", value: -25, category: "Агрессия" },
+                { id: 'w22', action: "Перешёл на личности в споре", value: -30, category: "Агрессия" },
+                { id: 'w23', action: "Молчал несколько дней после ссоры (игнор)", value: -25, category: "Агрессия" },
+                { id: 'w24', action: "Нарушил обещание", value: -30, category: "Недоверие" },
+                { id: 'w25', action: "Соврал даже по мелочи", value: -25, category: "Недоверие" },
+                { id: 'w26', action: "Скрыл важную информацию", value: -30, category: "Недоверие" },
+                { id: 'w27', action: "Проверял телефон партнёра без разрешения", value: -35, category: "Недоверие" },
+                { id: 'w28', action: "Не рассказал где был / с кем", value: -20, category: "Недоверие" },
+                { id: 'w29', action: "Не поддержал когда было трудно", value: -25, category: "Предательство" },
+                { id: 'w30', action: "Не защитил перед другими людьми", value: -30, category: "Предательство" },
+                { id: 'w31', action: "Выбрал друзей вместо партнёра в важный момент", value: -25, category: "Предательство" },
+                { id: 'w32', action: "Согласился с критикой в адрес партнёра от других", value: -25, category: "Предательство" },
+                { id: 'w33', action: "Забыл сказать куда ушёл / опоздал без предупреждения", value: -15, category: "Неуважение" },
+                { id: 'w34', action: "Принял важное решение без обсуждения", value: -25, category: "Неуважение" },
+                { id: 'w35', action: "Перебивал когда партнёр говорил", value: -10, category: "Неуважение" },
+                { id: 'w36', action: "Отменил совместные планы в последний момент", value: -20, category: "Неуважение" },
+                { id: 'w37', action: "Не убрал за собой хотя обещал", value: -10, category: "Неуважение" },
+                { id: 'w38', action: "Сказал 'Я же извинился!' вместо понимания", value: -20, category: "Защита" },
+                { id: 'w39', action: "Не извинился хотя был неправ", value: -25, category: "Защита" },
+                { id: 'w40', action: "Извинился но продолжил делать то же самое", value: -30, category: "Защита" },
+                { id: 'w41', action: "Обвинил партнёра в своих ошибках", value: -25, category: "Защита" },
+                { id: 'w42', action: "Выбрал работу/игры вместо партнёра в трудный момент", value: -25, category: "Приоритеты" },
+                { id: 'w43', action: "Не пришёл на важное для партнёра событие", value: -30, category: "Приоритеты" },
+                { id: 'w44', action: "Постоянно переносишь совместные планы", value: -20, category: "Приоритеты" },
+            ];
+
+            const handleItemClick = (item) => {
+                const selectedItems = viewMode === 'self' ? selectedItemsSelf : selectedItemsPartner;
+                const setSelectedItems = viewMode === 'self' ? setSelectedItemsSelf : setSelectedItemsPartner;
+                const balance = viewMode === 'self' ? balanceSelf : balancePartner;
+                const setBalance = viewMode === 'self' ? setBalanceSelf : setBalancePartner;
+
+                if (selectedItems.includes(item.id)) {
+                    setSelectedItems(selectedItems.filter(id => id !== item.id));
+                    setBalance(balance - item.value);
+                } else {
+                    setSelectedItems([...selectedItems, item.id]);
+                    setBalance(balance + item.value);
+                }
+            };
+
+            const resetBalance = () => {
+                if (viewMode === 'self') {
+                    setSelectedItemsSelf([]);
+                    setBalanceSelf(0);
+                } else {
+                    setSelectedItemsPartner([]);
+                    setBalancePartner(0);
+                }
+            };
+
+            const switchMode = () => {
+                setViewMode(viewMode === 'self' ? 'partner' : 'self');
+            };
+
+            const getBalanceColor = (balance) => {
+                if (balance > 50) return 'text-green-600';
+                if (balance > 0) return 'text-green-500';
+                if (balance === 0) return 'text-gray-600';
+                if (balance > -50) return 'text-orange-500';
+                return 'text-red-600';
+            };
+
+            const getHeartEmoji = (balance) => {
+                if (balance > 50) return '❤️';
+                if (balance > 20) return '💕';
+                if (balance > 0) return '💗';
+                if (balance === 0) return '🤍';
+                if (balance > -30) return '💔';
+                return '🖤';
+            };
+
+            const getBalanceMessage = (balance) => {
+                if (balance > 50) return '🔥 Отношения процветают!';
+                if (balance > 20) return '✅ Хороший баланс';
+                if (balance > 0) return '👍 Положительный баланс';
+                if (balance === 0) return '⚖️ Ноль. Опасная зона!';
+                if (balance > -30) return '⚠️ В минусе. Срочно пополняй!';
+                return '🚨 БАНКРОТ! Отношения в кризисе!';
+            };
+
+            const currentBalance = viewMode === 'self' ? balanceSelf : balancePartner;
+            const currentSelectedItems = viewMode === 'self' ? selectedItemsSelf : selectedItemsPartner;
+            const currentItems = activeTab === 'deposits' ? deposits : withdrawals;
+
+            return (
+                <div className="p-4 md:p-8">
+                    <div className="max-w-5xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                                Эмоциональный счёт в отношениях
+                            </h1>
+                            
+                            <div className="bg-purple-100 rounded-xl p-5 md:p-6 mb-6 max-w-3xl mx-auto text-left">
+                                <p className="text-gray-700 text-sm md:text-base mb-3">
+                                    💡 <strong>Как использовать:</strong>
+                                </p>
+                                <ol className="text-gray-700 text-sm md:text-base space-y-2 list-decimal list-inside">
+                                    <li>Заполни <strong>"Оцениваю себя"</strong> - отмечай свои действия за месяц</li>
+                                    <li>Переключись на <strong>"Оцениваю партнёра"</strong> - отмечай его/её действия</li>
+                                    <li>После заполнения обоих режимов <strong>снизу появится общая картина</strong> с вашими балансами</li>
+                                    <li>Попроси партнёра сделать то же самое и сравните результаты!</li>
+                                </ol>
+                                <p className="text-gray-700 text-sm md:text-base mt-3">
+                                    🎯 <strong>Обрати внимание:</strong> Если много минусов в одной категории - это твоя точка роста!
+                                </p>
+                            </div>
+                            
+                            <div className="flex justify-center gap-3 mb-6">
+                                <button
+                                    onClick={switchMode}
+                                    className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                                        viewMode === 'self'
+                                            ? 'bg-blue-500 text-white shadow-lg'
+                                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    📝 Оцениваю себя
+                                </button>
+                                <button
+                                    onClick={switchMode}
+                                    className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+                                        viewMode === 'partner'
+                                            ? 'bg-pink-500 text-white shadow-lg'
+                                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    👤 Оцениваю партнёра
+                                </button>
+                            </div>
+
+                            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+                                {viewMode === 'self' 
+                                    ? 'Отмечай действия которые ТЫ совершал за последний месяц'
+                                    : 'Отмечай действия которые совершал ТВОЙ ПАРТНЁР за последний месяц'
+                                }
+                            </p>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border-4 border-purple-200">
+                            <div className="text-center">
+                                <div className="text-6xl md:text-8xl mb-4 transition-all duration-300">
+                                    {getHeartEmoji(currentBalance)}
+                                </div>
+                                <p className="text-sm text-gray-500 mb-2">
+                                    {viewMode === 'self' ? 'МОЙ БАЛАНС ЗА МЕСЯЦ' : 'БАЛАНС ПАРТНЁРА ЗА МЕСЯЦ'}
+                                </p>
+                                <p className={`text-5xl md:text-6xl font-bold ${getBalanceColor(currentBalance)} transition-all duration-300`}>
+                                    {currentBalance > 0 ? '+' : ''}{currentBalance}
+                                </p>
+                                <p className="text-lg md:text-xl font-semibold text-gray-700 mt-3">
+                                    {getBalanceMessage(currentBalance)}
+                                </p>
+                                <button
+                                    onClick={resetBalance}
+                                    className="mt-4 px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium text-gray-700 transition-colors"
+                                >
+                                    🔄 Сбросить
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 mb-6">
+                            <button
+                                onClick={() => setActiveTab('deposits')}
+                                className={`flex-1 py-3 md:py-4 px-4 md:px-6 rounded-xl font-semibold transition-all ${
+                                    activeTab === 'deposits'
+                                        ? 'bg-green-500 text-white shadow-lg scale-105'
+                                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                ➕ Пополнения
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('withdrawals')}
+                                className={`flex-1 py-3 md:py-4 px-4 md:px-6 rounded-xl font-semibold transition-all ${
+                                    activeTab === 'withdrawals'
+                                        ? 'bg-red-500 text-white shadow-lg scale-105'
+                                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                ➖ Снятия
+                            </button>
+                        </div>
+
+                        <div className="grid gap-3 md:gap-4">
+                            {currentItems.map((item) => {
+                                const isSelected = currentSelectedItems.includes(item.id);
+                                return (
+                                    <div
+                                        key={item.id}
+                                        onClick={() => handleItemClick(item)}
+                                        className={`bg-white rounded-xl p-4 md:p-5 cursor-pointer transition-all duration-200 border-2 ${
+                                            isSelected
+                                                ? activeTab === 'deposits'
+                                                    ? 'border-green-500 bg-green-50 shadow-lg'
+                                                    : 'border-red-500 bg-red-50 shadow-lg'
+                                                : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                                        }`}
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-gray-800 font-medium text-base md:text-lg mb-2">
+                                                    {item.action}
+                                                </p>
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
+                                                    activeTab === 'deposits' 
+                                                        ? 'bg-green-100 text-green-700' 
+                                                        : 'bg-red-100 text-red-700'
+                                                }`}>
+                                                    {item.category}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-2">
+                                                <span className={`text-2xl md:text-3xl font-bold ${
+                                                    activeTab === 'deposits' ? 'text-green-600' : 'text-red-600'
+                                                }`}>
+                                                    {item.value > 0 ? '+' : ''}{item.value}
+                                                </span>
+                                                {isSelected && (
+                                                    <span className="text-xs bg-purple-500 text-white px-2 py-1 rounded-full">
+                                                        ✓ Выбрано
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {(selectedItemsSelf.length > 0 && selectedItemsPartner.length > 0) && (
+                            <div className="mt-8 bg-gradient-to-r from-blue-50 to-pink-50 rounded-xl p-6 shadow-lg border-2 border-purple-400">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                                    📊 Общая картина отношений
+                                </h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                                        <p className="text-sm text-gray-600 mb-1">Твой вклад</p>
+                                        <p className={`text-4xl font-bold ${getBalanceColor(balanceSelf)}`}>
+                                            {balanceSelf > 0 ? '+' : ''}{balanceSelf}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-4 border-2 border-pink-300">
+                                        <p className="text-sm text-gray-600 mb-1">Вклад партнёра</p>
+                                        <p className={`text-4xl font-bold ${getBalanceColor(balancePartner)}`}>
+                                            {balancePartner > 0 ? '+' : ''}{balancePartner}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <p className="text-lg font-semibold text-gray-700">
+                                        Общий баланс отношений: 
+                                        <span className={`ml-2 text-2xl ${getBalanceColor(balanceSelf + balancePartner)}`}>
+                                            {(balanceSelf + balancePartner) > 0 ? '+' : ''}{balanceSelf + balancePartner}
+                                        </span>
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        {balanceSelf + balancePartner > 50 
+                                            ? '💪 Вы оба вкладываетесь - так держать!'
+                                            : balanceSelf + balancePartner > 0
+                                            ? '👍 Неплохо, но есть куда расти'
+                                            : balanceSelf + balancePartner === 0
+                                            ? '⚠️ На грани. Обоим нужно добавить усилий'
+                                            : '🚨 Кризис. Нужен серьёзный разговор и изменения'
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-8 bg-purple-100 rounded-xl p-5 md:p-6">
+                            <p className="text-gray-700 text-sm md:text-base">
+                                💡 <strong>Важно:</strong> Одно крупное снятие (-30) не компенсируется одним пополнением (+10). 
+                                Нужно минимум 3-5 искренних пополнений, чтобы восстановить баланс после серьёзного косяка.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<EmotionalBankAccount />, document.getElementById('root'));
+    </script>
+</body>
+</html>
