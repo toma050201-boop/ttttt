@@ -113,6 +113,84 @@
                 { id: 'w44', action: "Постоянно переносишь совместные планы", value: -20, category: "Приоритеты" },
             ];
 
+            const getCategoryRecommendation = (category) => {
+                const recommendations = {
+                    "Невнимание": {
+                        problem: "Ты не замечаешь партнёра",
+                        solution: "Каждый день задавай вопрос 'Как ты?' и СЛУШАЙ ответ 2 минуты без телефона. Ставь напоминание в телефоне если забываешь про важные даты."
+                    },
+                    "Игнор": {
+                        problem: "Ты игнорируешь партнёра",
+                        solution: "Правило: первые 15 минут дома - без телефона. Поздоровался, обнял, спросил про день. Только потом соцсети."
+                    },
+                    "Обесценивание": {
+                        problem: "Ты обесцениваешь чувства партнёра",
+                        solution: "Запрети себе фразы 'это ерунда', 'не преувеличивай', 'у других хуже'. Вместо этого: 'Расскажи подробнее, я хочу понять'."
+                    },
+                    "Унижение": {
+                        problem: "Ты унижаешь партнёра",
+                        solution: "НИКОГДА не критикуй при людях. НИКОГДА не сравнивай с другими. Хвали публично, критикуй наедине и мягко."
+                    },
+                    "Агрессия": {
+                        problem: "Ты срываешься на партнёра",
+                        solution: "Когда чувствуешь что закипаешь - скажи 'Мне нужно 10 минут' и выйди. Крик ничего не решает, только ломает доверие."
+                    },
+                    "Недоверие": {
+                        problem: "Ты разрушаешь доверие",
+                        solution: "Перестань врать даже по мелочам. Делай что обещаешь. Если не можешь выполнить - предупреди заранее, не в последний момент."
+                    },
+                    "Предательство": {
+                        problem: "Ты не поддерживаешь когда нужно",
+                        solution: "Партнёр должен знать что ты на его стороне. Защищай его перед другими. Выбирай его когда ему плохо, не друзей."
+                    },
+                    "Неуважение": {
+                        problem: "Ты не уважаешь партнёра",
+                        solution: "Предупреждай если опаздываешь/меняешь планы. Спрашивай мнение по важным решениям. Делай что обещал."
+                    },
+                    "Защита": {
+                        problem: "Ты не умеешь извиняться",
+                        solution: "Извинение = 'Прости за [конкретное действие]. Я понимаю что тебе было [чувство]. Больше не буду.' Без 'но' и оправданий."
+                    },
+                    "Приоритеты": {
+                        problem: "Партнёр не в приоритете",
+                        solution: "Раз в неделю - время только для вас двоих. Без телефонов, без друзей. Если партнёру плохо - твои планы подождут."
+                    }
+                };
+
+                return recommendations[category] || {
+                    problem: "Есть проблемы в отношениях",
+                    solution: "Поговори с партнёром откровенно о том, что не так."
+                };
+            };
+
+            const getWorstCategory = (selectedItems) => {
+                const withdrawalScores = {};
+                
+                withdrawals.forEach(item => {
+                    if (selectedItems.includes(item.id)) {
+                        if (!withdrawalScores[item.category]) {
+                            withdrawalScores[item.category] = { total: 0, count: 0 };
+                        }
+                        withdrawalScores[item.category].total += item.value;
+                        withdrawalScores[item.category].count += 1;
+                    }
+                });
+
+                let worstCategory = null;
+                let worstScore = 0;
+                let worstCount = 0;
+
+                Object.entries(withdrawalScores).forEach(([category, data]) => {
+                    if (data.total < worstScore) {
+                        worstScore = data.total;
+                        worstCategory = category;
+                        worstCount = data.count;
+                    }
+                });
+
+                return { category: worstCategory, score: worstScore, count: worstCount };
+            };
+
             const handleItemClick = (item) => {
                 const selectedItems = viewMode === 'self' ? selectedItemsSelf : selectedItemsPartner;
                 const setSelectedItems = viewMode === 'self' ? setSelectedItemsSelf : setSelectedItemsPartner;
@@ -318,43 +396,139 @@
                             })}
                         </div>
 
-                        {(selectedItemsSelf.length > 0 && selectedItemsPartner.length > 0) && (
-                            <div className="mt-8 bg-gradient-to-r from-blue-50 to-pink-50 rounded-xl p-6 shadow-lg border-2 border-purple-400">
-                                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                                    📊 Общая картина отношений
-                                </h3>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
-                                        <p className="text-sm text-gray-600 mb-1">Твой вклад</p>
-                                        <p className={`text-4xl font-bold ${getBalanceColor(balanceSelf)}`}>
-                                            {balanceSelf > 0 ? '+' : ''}{balanceSelf}
-                                        </p>
+                        {/* Summary Section */}
+                        {(selectedItemsSelf.length > 0 || selectedItemsPartner.length > 0) && (
+                            <div className="mt-8 space-y-4">
+                                
+                                {/* Combined Summary */}
+                                {selectedItemsSelf.length > 0 && selectedItemsPartner.length > 0 && (
+                                    <div className="bg-gradient-to-r from-blue-50 to-pink-50 rounded-xl p-6 shadow-lg border-2 border-purple-400">
+                                        <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                                            📊 Общая картина отношений
+                                        </h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                                                <p className="text-sm text-gray-600 mb-1">Твой вклад</p>
+                                                <p className={`text-4xl font-bold ${getBalanceColor(balanceSelf)}`}>
+                                                    {balanceSelf > 0 ? '+' : ''}{balanceSelf}
+                                                </p>
+                                            </div>
+                                            <div className="bg-white rounded-lg p-4 border-2 border-pink-300">
+                                                <p className="text-sm text-gray-600 mb-1">Вклад партнёра</p>
+                                                <p className={`text-4xl font-bold ${getBalanceColor(balancePartner)}`}>
+                                                    {balancePartner > 0 ? '+' : ''}{balancePartner}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 text-center">
+                                            <p className="text-lg font-semibold text-gray-700">
+                                                Общий баланс отношений: 
+                                                <span className={`ml-2 text-2xl ${getBalanceColor(balanceSelf + balancePartner)}`}>
+                                                    {(balanceSelf + balancePartner) > 0 ? '+' : ''}{balanceSelf + balancePartner}
+                                                </span>
+                                            </p>
+                                            <p className="text-sm text-gray-600 mt-2">
+                                                {balanceSelf + balancePartner > 50 
+                                                    ? '💪 Вы оба вкладываетесь - так держать!'
+                                                    : balanceSelf + balancePartner > 0
+                                                    ? '👍 Неплохо, но есть куда расти'
+                                                    : balanceSelf + balancePartner === 0
+                                                    ? '⚠️ На грани. Обоим нужно добавить усилий'
+                                                    : '🚨 Кризис. Нужен серьёзный разговор и изменения'
+                                                }
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="bg-white rounded-lg p-4 border-2 border-pink-300">
-                                        <p className="text-sm text-gray-600 mb-1">Вклад партнёра</p>
-                                        <p className={`text-4xl font-bold ${getBalanceColor(balancePartner)}`}>
-                                            {balancePartner > 0 ? '+' : ''}{balancePartner}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4 text-center">
-                                    <p className="text-lg font-semibold text-gray-700">
-                                        Общий баланс отношений: 
-                                        <span className={`ml-2 text-2xl ${getBalanceColor(balanceSelf + balancePartner)}`}>
-                                            {(balanceSelf + balancePartner) > 0 ? '+' : ''}{balanceSelf + balancePartner}
-                                        </span>
-                                    </p>
-                                    <p className="text-sm text-gray-600 mt-2">
-                                        {balanceSelf + balancePartner > 50 
-                                            ? '💪 Вы оба вкладываетесь - так держать!'
-                                            : balanceSelf + balancePartner > 0
-                                            ? '👍 Неплохо, но есть куда расти'
-                                            : balanceSelf + balancePartner === 0
-                                            ? '⚠️ На грани. Обоим нужно добавить усилий'
-                                            : '🚨 Кризис. Нужен серьёзный разговор и изменения'
-                                        }
-                                    </p>
-                                </div>
+                                )}
+
+                                {/* Individual Analysis for Self */}
+                                {selectedItemsSelf.length > 0 && (() => {
+                                    const worstSelf = getWorstCategory(selectedItemsSelf);
+                                    return (
+                                        <div>
+                                            <div className="bg-white rounded-xl p-6 text-center shadow-lg border-2 border-blue-300">
+                                                <p className="text-lg md:text-xl text-gray-700 font-semibold mb-2">
+                                                    {balanceSelf > 0 
+                                                        ? '👏 Ты молодец! Продолжай вкладываться в отношения'
+                                                        : balanceSelf === 0
+                                                        ? '⚠️ Ты на нуле. Пора начать вкладываться!'
+                                                        : '🚨 Ты разрушаешь отношения. Срочно меняй поведение!'
+                                                    }
+                                                </p>
+                                            </div>
+                                            
+                                            {worstSelf.category && worstSelf.score < 0 && (() => {
+                                                const recommendation = getCategoryRecommendation(worstSelf.category);
+                                                return (
+                                                    <div className="bg-red-50 rounded-xl p-6 shadow-lg border-2 border-red-300">
+                                                        <h3 className="text-xl font-bold text-red-800 mb-3">
+                                                            🎯 Твоя главная проблема: {worstSelf.category}
+                                                        </h3>
+                                                        <p className="text-red-700 font-semibold mb-2">
+                                                            {worstSelf.count} {worstSelf.count === 1 ? 'раз' : 'раза'} за месяц | {worstSelf.score} баллов
+                                                        </p>
+                                                        <div className="bg-white rounded-lg p-4 mb-3">
+                                                            <p className="text-gray-800 font-medium mb-2">
+                                                                ❌ Проблема: {recommendation.problem}
+                                                            </p>
+                                                            <p className="text-gray-700">
+                                                                ✅ Что делать: {recommendation.solution}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-sm text-red-600 italic">
+                                                            Не пытайся исправить всё сразу. Сфокусируйся на этой категории в течение месяца.
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Individual Analysis for Partner */}
+                                {selectedItemsPartner.length > 0 && (() => {
+                                    const worstPartner = getWorstCategory(selectedItemsPartner);
+                                    return (
+                                        <div>
+                                            <div className="bg-white rounded-xl p-6 text-center shadow-lg border-2 border-pink-300">
+                                                <p className="text-lg md:text-xl text-gray-700 font-semibold mb-2">
+                                                    {balancePartner > 0 
+                                                        ? '💕 Твой партнёр вкладывается в отношения'
+                                                        : balancePartner === 0
+                                                        ? '😐 Партнёр на нуле. Поговорите об этом'
+                                                        : '💔 Партнёр разрушает отношения. Нужен серьёзный разговор'
+                                                    }
+                                                </p>
+                                            </div>
+                                            
+                                            {worstPartner.category && worstPartner.score < 0 && (() => {
+                                                const recommendation = getCategoryRecommendation(worstPartner.category);
+                                                return (
+                                                    <div className="bg-orange-50 rounded-xl p-6 shadow-lg border-2 border-orange-300">
+                                                        <h3 className="text-xl font-bold text-orange-800 mb-3">
+                                                            🎯 Главная проблема партнёра: {worstPartner.category}
+                                                        </h3>
+                                                        <p className="text-orange-700 font-semibold mb-2">
+                                                            {worstPartner.count} {worstPartner.count === 1 ? 'раз' : 'раза'} за месяц | {worstPartner.score} баллов
+                                                        </p>
+                                                        <div className="bg-white rounded-lg p-4 mb-3">
+                                                            <p className="text-gray-800 font-medium mb-2">
+                                                                ❌ Проблема: {recommendation.problem}
+                                                            </p>
+                                                            <p className="text-gray-700">
+                                                                ✅ Что делать: {recommendation.solution}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-sm text-orange-600 italic">
+                                                            Покажи партнёру эти результаты. Обсудите вместе как это можно изменить.
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    );
+                                })()}
+
                             </div>
                         )}
 
